@@ -4,22 +4,37 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class AddTodo extends StatefulWidget {
-  const AddTodo({Key? key}) : super(key: key);
+  final Map? Todo;
+  const AddTodo({Key? key,this.Todo}) : super(key: key);
 
   @override
   State<AddTodo> createState() => _AddTodoState();
 }
 
 class _AddTodoState extends State<AddTodo> {
+  bool isEdit=false;
   TextEditingController titleController = new TextEditingController();
   TextEditingController DiscriptionController = new TextEditingController();
+  @override
+  void initState() {
+    final Todo=widget.Todo;
+    if(Todo!=null){
+      final title=Todo['title'];
+      final  discription=Todo['discription'];
+      titleController.text=title;
+      DiscriptionController.text=discription;
+      isEdit=true;
+    }
+    // TODO: implement initState
+    super.initState();
+  }
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
             appBar: AppBar(
               centerTitle: true,
-              title: Text('Add Todo'),
+              title: Text(isEdit?'Edit Todo':'Add Todo'),
             ),
             body: ListView(
               padding: EdgeInsets.all(20),
@@ -50,9 +65,9 @@ class _AddTodoState extends State<AddTodo> {
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       primary: Colors.greenAccent.shade200),
-                  onPressed: submitData,
+                  onPressed: isEdit? UpdateData:submitData,
                   child: Text(
-                    "Save",
+                   isEdit ? "Update":" Submit",
                     style: TextStyle(
                         color: Colors.black, fontWeight: FontWeight.bold),
                   ),
@@ -60,7 +75,27 @@ class _AddTodoState extends State<AddTodo> {
               ],
             )));
   }
+  Future<void> UpdateData()async{
+    final Todo =widget.Todo;
+    if(Todo==null){
 
+    }
+    final id=Todo['_id'];
+    final title = titleController.text;
+    final discription = DiscriptionController.text;
+    final Body = {
+      "title": title,
+      "description": discription,
+      "is_completed": false
+    };
+    final url = 'https://api.nstack.in/v1/$id';
+    final uri = Uri.parse(url);
+    final response = await http.post(
+      uri,
+      body: jsonEncode(Body),
+      headers: {'Content-Type': 'application/json'},
+    );
+  }
   Future<void> submitData() async {
 //1. get data from form
     //2. sumit data to server

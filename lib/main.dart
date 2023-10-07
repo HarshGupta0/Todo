@@ -15,9 +15,6 @@ class _MyappState extends State<Myapp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      routes: {
-        "/AddTodo":(context)=>AddTodo(),
-      },
       debugShowCheckedModeBanner: false,
       // themeMode: ThemeMode.dark,
       theme: ThemeData.dark(),

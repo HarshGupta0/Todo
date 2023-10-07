@@ -2,15 +2,20 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:todo/Screens/AddTodoPage.dart';
 
 class TodoPage extends StatefulWidget {
-  const TodoPage({Key? key}) : super(key: key);
+  const TodoPage({
+    Key? key,
+
+  }) : super(key: key);
 
   @override
   State<TodoPage> createState() => _TodoPageState();
 }
 
 class _TodoPageState extends State<TodoPage> {
+  bool isEdit =false;
   bool isLoading = true;
   List items = [];
   @override
@@ -30,7 +35,7 @@ class _TodoPageState extends State<TodoPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
           onPressed: () {
-            Navigator.pushNamed(context, '/AddTodo');
+            navigateToAddPage();
           },
           label: Text('Add Todo')),
       body: Visibility(
@@ -44,7 +49,7 @@ class _TodoPageState extends State<TodoPage> {
                 itemCount: items.length,
                 itemBuilder: (context, index) {
                   final item = items[index] as Map;
-                  final id=item['_id'] as String;
+                  final id = item['_id'] as String;
                   return ListTile(
                     leading: CircleAvatar(
                       child: Text('${index + 1}'),
@@ -52,45 +57,48 @@ class _TodoPageState extends State<TodoPage> {
                     title: Text(item['title']),
                     subtitle: Text(item['description']),
                     trailing: PopupMenuButton(
-                      onSelected: (value){
-                        if(value=='edit'){
-                        //open and edit
-                        }else if(value=='delete'){
+                      onSelected: (value) {
+                        if (value == 'edit') {
+                          navigateToEditPage(item);
+                          //open and edit
+                        } else if (value == 'delete') {
                           //delete and remove the item
+                          DeleteById(id);
                         }
                       },
-                      itemBuilder: (context){
+                      itemBuilder: (context) {
                         return [
-                          PopupMenuItem(child: Text('Edit'),
+                          PopupMenuItem(
+                            child: Text('Edit'),
                             value: 'edit',
                           ),
-                          PopupMenuItem(child: Text('Delete'),
+                          PopupMenuItem(
+                            child: Text('Delete'),
                             value: 'delete',
                           ),
                         ];
                       },
                     ),
                   );
-                }
-                )
-        ),
+                })),
       ),
     ));
   }
- Future<void> DeleteById( String id)async{
-     final url ='https://api.nstack.in/v1/todos/$id';
-     final uri = Uri.parse(url);
-     final response=await http.delete(uri);
-     if(response.statusCode==200){
-       final filtered =items.where((element) => element['_id']!=id).toList();
-       setState(() {
-         items=filtered;
-       });
-     }else{
-       ShowFailureMessage('Erorr Deleting');
-     }
 
- }
+  Future<void> DeleteById(String id) async {
+    final url = 'https://api.nstack.in/v1/todos/$id';
+    final uri = Uri.parse(url);
+    final response = await http.delete(uri);
+    if (response.statusCode == 200) {
+      final filtered = items.where((element) => element['_id'] != id).toList();
+      setState(() {
+        items = filtered;
+      });
+    } else {
+      ShowFailureMessage('Erorr Deleting');
+    }
+  }
+
   Future<void> FetchTodo() async {
     final url = 'https://api.nstack.in/v1/todos?page=1&limit=10';
     final uri = Uri.parse(url);
@@ -108,20 +116,37 @@ class _TodoPageState extends State<TodoPage> {
     print(response.body);
     print(response.statusCode);
   }
+
   void ShowFailureMessage(String Message) {
     final snackBar = SnackBar(
       content: Container(
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(Message,style: TextStyle(fontSize: 22,color: Colors.white),),
+            Text(
+              Message,
+              style: TextStyle(fontSize: 22, color: Colors.white),
+            ),
             Icon(Icons.close),
-
           ],
         ),
       ),
       backgroundColor: Colors.red.shade200,
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void navigateToEditPage(Map item) {
+    final route = MaterialPageRoute(builder: (context) => AddTodo(Todo:item));
+    Navigator.push(context, route);
+  }
+
+  Future<void> navigateToAddPage() async {
+    final route = MaterialPageRoute(builder: (context) => AddTodo());
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    FetchTodo();
   }
 }
