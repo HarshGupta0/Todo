@@ -136,9 +136,13 @@ class _TodoPageState extends State<TodoPage> {
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
-  void navigateToEditPage(Map item) {
+  Future<void> navigateToEditPage(Map item)async{
     final route = MaterialPageRoute(builder: (context) => AddTodo(Todo:item));
-    Navigator.push(context, route);
+    await Navigator.push(context, route);
+    setState(() {
+      isLoading = true;
+    });
+    FetchTodo();
   }
 
   Future<void> navigateToAddPage() async {

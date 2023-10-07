@@ -78,9 +78,10 @@ class _AddTodoState extends State<AddTodo> {
   Future<void> UpdateData()async{
     final Todo =widget.Todo;
     if(Todo==null){
-
+      print('You can not call updated without todo data');
+      return;
     }
-    final id=Todo['_id'];
+    final id= Todo['_id'];
     final title = titleController.text;
     final discription = DiscriptionController.text;
     final Body = {
@@ -90,11 +91,20 @@ class _AddTodoState extends State<AddTodo> {
     };
     final url = 'https://api.nstack.in/v1/$id';
     final uri = Uri.parse(url);
-    final response = await http.post(
+    final response = await http.put(
       uri,
       body: jsonEncode(Body),
       headers: {'Content-Type': 'application/json'},
     );
+    if (response.statusCode == 200) {
+      print("Succesfully Updated");
+      ShowSuccessMessage('Succesfully Udated');
+      print(response.body);
+      print(response.statusCode);
+    } else {
+      print("Error in Updation");
+      ShowFailureMessage('Error in Updation');
+    }
   }
   Future<void> submitData() async {
 //1. get data from form
